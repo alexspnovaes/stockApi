@@ -30,15 +30,22 @@ namespace Stock.Infra.ExternalServices
 
         public async Task<Domain.Models.Stock> GetAsync(string StockCode)
         {
-            Stock.Domain.Models.Stock stock = null;
+            Domain.Models.Stock stock = null;
             var response = await _client.GetAsync($"?s={StockCode}&f=sd2t2ohlcv&h&e=csv");
             if (response.IsSuccessStatusCode)
-            {
+            {                
                 var result = await response.Content.ReadAsStreamAsync();
                 TextReader reader = new StreamReader(result);
                 var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
                 var records = csvReader.GetRecords<Domain.Models.Stock>();
-                stock = records.FirstOrDefault();
+                try
+                {
+                    stock = records.FirstOrDefault();
+                }
+                catch 
+                { 
+                    throw new HttpRequestException();
+                }
             }
             return stock;
         }

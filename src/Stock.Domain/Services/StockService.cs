@@ -6,6 +6,7 @@ using RabbitMQ.Client;
 using Stock.Domain.Configuration;
 using Stock.Domain.Models;
 using System;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -43,9 +44,23 @@ namespace Stock.Domain.Services
                 stock.RoomId = model.RoomId;
                 stock.User = model.User;
             }
-            catch (Exception ex)
+            catch (HttpRequestException)
             {
-                throw new Exception("Failed to get stock", ex);
+                stock = new StockModel
+                {
+                    RoomId = model.RoomId,
+                    User = model.User,
+                    Symbol = "Error: there is no data for this stock, try again using another stock"
+                };
+            }
+            catch (Exception)
+            {
+                stock = new StockModel
+                {
+                    RoomId = model.RoomId,
+                    User = model.User,
+                    Symbol = "Error: fail getting stock, please try again"
+                };
             }
 
             PostMessage(stock);
